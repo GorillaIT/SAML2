@@ -19,13 +19,16 @@ namespace Owin.Security.Saml
 
         private readonly ILogger _logger;
 
+        private readonly bool _saveChallengeUri;
+
         /// <summary>
         /// Creates a new SamlAuthenticationHandler
         /// </summary>
         /// <param name="logger"></param>
-        public SamlAuthenticationHandler(ILogger logger)
+        public SamlAuthenticationHandler(ILogger logger, bool saveChallengeUri)
         {
             _logger = logger;
+            _saveChallengeUri = saveChallengeUri;
         }
 
         /// <summary>
@@ -107,7 +110,7 @@ namespace Owin.Security.Saml
 
             // Save the original challenge URI so we can redirect back to it when we're done.
             AuthenticationProperties properties = challenge.Properties;
-            if (string.IsNullOrEmpty(properties.RedirectUri))
+            if (_saveChallengeUri && string.IsNullOrEmpty(properties.RedirectUri))
             {
                 properties.RedirectUri = currentUri;
                 if (_logger.IsEnabled(TraceEventType.Verbose))

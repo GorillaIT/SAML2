@@ -14,6 +14,8 @@ namespace Owin.Security.Saml
     {
         private readonly ILogger _logger;
 
+        private readonly SamlAuthenticationOptions _options;
+
         /// <summary>
         /// Initializes a <see cref="SamlAuthenticationMiddleware"/>
         /// </summary>
@@ -25,6 +27,7 @@ namespace Owin.Security.Saml
             : base(next, options)
         {
             _logger = app.CreateLogger<SamlAuthenticationMiddleware>();
+            _options = options;
 
             if (Options.Notifications == null)
             {
@@ -44,7 +47,7 @@ namespace Owin.Security.Saml
         /// <returns>An <see cref="AuthenticationHandler"/> configured with the <see cref="SamlAuthenticationOptions"/> supplied to the constructor.</returns>
         protected override AuthenticationHandler<SamlAuthenticationOptions> CreateHandler()
         {
-            return new SamlAuthenticationHandler(_logger);
+            return new SamlAuthenticationHandler(_logger, _options.RedirectToChallengeUrl);
         }
 
         [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope", Justification = "Managed by caller")]

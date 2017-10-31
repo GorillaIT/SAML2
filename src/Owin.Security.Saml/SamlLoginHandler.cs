@@ -190,22 +190,23 @@ namespace Owin
             var requestParams = context.Request.GetRequestParameters().ToNameValueCollection();
             if (!string.IsNullOrWhiteSpace(requestParams["SAMLart"])) {
                 HandleArtifact(context);
-            }
-
-            var samlResponse = requestParams["SamlResponse"];
-            if (!string.IsNullOrWhiteSpace(samlResponse)) {
-                var assertion = Utility.HandleResponse(configuration, samlResponse, session, getFromCache, setInCache);
-                loginAction(assertion);
             } else {
-                if (configuration.CommonDomainCookie.Enabled && context.Request.Query["r"] == null
-                    && requestParams["cidp"] == null) {
-                    Logger.Debug(TraceMessages.CommonDomainCookieRedirectForDiscovery);
-                    context.Response.Redirect(configuration.CommonDomainCookie.LocalReaderEndpoint);
+                var samlResponse = requestParams["SamlResponse"];
+                if (!string.IsNullOrWhiteSpace(samlResponse)) {
+                    var assertion = Utility.HandleResponse(configuration, samlResponse, session, getFromCache, setInCache);
+                    loginAction(assertion);
                 } else {
-                    Logger.WarnFormat(ErrorMessages.UnauthenticatedAccess, context.Request.Uri.OriginalString);
-                    throw new InvalidOperationException("Response request recieved without any response data");
+                    if ((configuration.CommonDomainCookie?.Enabled ?? false) && context.Request.Query["r"] == null
+                            && requestParams["cidp"] == null) {
+                        Logger.Debug(TraceMessages.CommonDomainCookieRedirectForDiscovery);
+                        context.Response.Redirect(configuration.CommonDomainCookie.LocalReaderEndpoint);
+                    } else {
+                        Logger.WarnFormat(ErrorMessages.UnauthenticatedAccess, context.Request.Uri.OriginalString);
+                        throw new InvalidOperationException("Response request recieved without any response data");
+                    }
                 }
             }
+
             return Task.FromResult(requestParams);
         }
 

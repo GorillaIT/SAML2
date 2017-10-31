@@ -153,6 +153,7 @@ namespace Owin.Security.Saml
                     SigningKey = config.ServiceProvider.SigningCertificate.PrivateKey,
                     Request = request.GetXml().OuterXml
                 };
+                
                 if (context.Authentication != null &&
                     context.Authentication.AuthenticationResponseChallenge != null &&
                     context.Authentication.AuthenticationResponseChallenge.Properties != null &&

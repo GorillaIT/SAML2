@@ -53,6 +53,13 @@ namespace Owin.Security.Saml
 		/// </summary>
 		public string SignInAsAuthenticationType { get; set; }
 
+        /// <summary>
+        /// If true uses the requested url from when the challenge was issued to redirect the user after login.
+        /// The requested URL will be stored in the RelayState.
+        /// If set to false the url will not be send in the RelayState.
+        /// </summary>
+        public bool RedirectToChallengeUrl { get; set; } = true;
+
 		/// <summary>
 		/// Passthrough property to Description.Caption.
 		/// </summary>
