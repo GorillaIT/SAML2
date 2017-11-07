@@ -131,7 +131,6 @@ namespace Owin.Security.Saml
             var logger = SAML2.Logging.LoggerProvider.LoggerFor(typeof(SamlMessage));
 
             var destination = IdpSelectionUtil.DetermineEndpointConfiguration(BindingType.Redirect, identityProvider.Endpoints.DefaultLogoutEndpoint, identityProvider.Metadata.IDPSLOEndpoints);
-            // do not set the destination for DigiD
             request.Destination = destination.Url;
 
             if (destination.Binding == BindingType.Redirect)
