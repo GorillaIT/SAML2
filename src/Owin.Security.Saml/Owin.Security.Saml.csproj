@@ -78,6 +78,7 @@
     <Compile Include="SamlAuthenticationNotifications.cs" />
     <Compile Include="SamlAuthenticationOptions.cs" />
     <Compile Include="SamlLoginHandler.cs" />
+    <Compile Include="SamlLogoutHandler.cs" />
     <Compile Include="SamlMessage.cs" />
     <Compile Include="SamlMetadataWriter.cs" />
     <Compile Include="SelectSaml20IDP.cs" />

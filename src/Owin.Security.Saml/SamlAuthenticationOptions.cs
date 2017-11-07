@@ -47,11 +47,17 @@ namespace Owin.Security.Saml
         /// </summary>
         public string RedirectAfterLogin { get; set; }
 
-		/// <summary>
-		/// The authentication type that will be used to sign in with. Typically this will be "ExternalCookie"
-		/// to be picked up by the external cookie authentication middleware that persists the identity in a cookie.
-		/// </summary>
-		public string SignInAsAuthenticationType { get; set; }
+        /// <summary>
+        /// Defines path used for redirection after a logoff occurs. This should be considered temporary
+        /// until a better solution is developed for redirection to the original path
+        /// </summary>
+        public string RedirectAfterLogoff { get; set; }
+
+        /// <summary>
+        /// The authentication type that will be used to sign in with. Typically this will be "ExternalCookie"
+        /// to be picked up by the external cookie authentication middleware that persists the identity in a cookie.
+        /// </summary>
+        public string SignInAsAuthenticationType { get; set; }
 
         /// <summary>
         /// If true uses the requested url from when the challenge was issued to redirect the user after login.

@@ -9,6 +9,7 @@ using Microsoft.Owin.Security.Notifications;
 using Microsoft.Owin.Security;
 using Newtonsoft.Json;
 using System.Net;
+using System.Text;
 
 namespace Owin.Security.Saml
 {
@@ -81,9 +82,11 @@ namespace Owin.Security.Saml
 
                 if (Context.Request.IsAjaxRequest())
                 {
-                    // TODO: check if this is realy the correct way to send the Uri:
-                    Response.StatusCode = (int)HttpStatusCode.NoContent;
-                    Response.Headers.Add("X-Location", new[] { redirectUri });
+                    var json = JsonConvert.SerializeObject(new { uri = redirectUri });
+                    Response.StatusCode = (int)HttpStatusCode.OK;
+                    Response.ContentType = "application/json";
+                    Response.ContentLength = Encoding.UTF8.GetByteCount(json);
+                    Response.Write(json);
                 }
                 else
                 {
@@ -162,6 +165,11 @@ namespace Owin.Security.Saml
         // Returns true if the request was handled, false if the next middleware should be invoked.
         private async Task<bool> InvokeReplyPathAsync()
         {
+            if (Options.LogoutPath == Request.Path.Value)
+            {
+                return await new SamlLogoutHandler(Options).Invoke(Request.Context);
+            }
+
             AuthenticationTicket ticket = await AuthenticateAsync();
             if (ticket == null)
             {
@@ -204,9 +212,6 @@ namespace Owin.Security.Saml
             // Allow login to be constrained to a specific path.
             if (Options.LoginPath == Request.Path.Value)
                 return await new SamlLoginHandler(Options).Invoke(Request.Context);
-
-            if (Options.LogoutPath == Request.Path.Value)
-                return null; // do log-off
 
             return null;
         }
