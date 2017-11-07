@@ -20,7 +20,7 @@ namespace Owin.Security.Saml
             if (subject == null) yield break;
             if (subject.Value != null) {
                 yield return new Claim("sub", subject.Value, ClaimValueTypes.String, issuer); // openid connect
-                yield return new Claim(ClaimTypes.NameIdentifier, subject.Value, ClaimValueTypes.String, issuer); // saml
+                yield return new Claim(ClaimTypes.NameID, subject.Value, ClaimValueTypes.String, issuer); // saml
             }
         }
     }

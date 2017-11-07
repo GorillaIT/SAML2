@@ -171,5 +171,10 @@ namespace Owin.Security.Saml
 
             return null;
         }
+
+        public static bool IsAjaxRequest(this IOwinRequest request)
+        {
+            return "XMLHttpRequest".Equals(request?.Headers?["X-Requested-With"]);
+        }
     }
 }

@@ -7,6 +7,8 @@ using SAML2;
 using SAML2.Bindings;
 using SAML2.Protocol;
 using Microsoft.IdentityModel.Protocols;
+using System.Security.Claims;
+using System.Linq;
 
 namespace Owin.Security.Saml
 {
@@ -104,6 +106,57 @@ namespace Owin.Security.Saml
 
             var authnRequest = Saml20AuthnRequest.GetDefault(config);
             return AuthnRequestForIdp(idp, authnRequest, context, config);
+        }
+
+        public string BuildSignOutRedirectUrl()
+        {
+            string rc = null;
+            var logger = SAML2.Logging.LoggerProvider.LoggerFor(typeof(SamlMessage));
+            var selectionUtil = new IdpSelectionUtil(logger);
+            var allparams = BuildParams(form, context.Request.Query);
+            var idp = selectionUtil.RetrieveIDP(allparams, BuildParams(context.Request.Query), config, s => rc = s);
+            if (rc != null) return rc; // IDP selection screen
+            if (idp == null)
+            {
+                logger.DebugFormat(TraceMessages.IdentityProviderRedirect);
+                throw new NotImplementedException("Selection of IDP not yet done (probably need a map call on middleware extension method)");
+            }
+
+            var logoutRequest = Saml20LogoutRequest.GetDefault(config);
+            return LogoutRequestForIdp(idp, logoutRequest, context, config);
+        }
+
+        private string LogoutRequestForIdp(IdentityProvider identityProvider, Saml20LogoutRequest request, IOwinContext context, Saml2Configuration config)
+        {
+            var logger = SAML2.Logging.LoggerProvider.LoggerFor(typeof(SamlMessage));
+
+            var destination = IdpSelectionUtil.DetermineEndpointConfiguration(BindingType.Redirect, identityProvider.Endpoints.DefaultLogoutEndpoint, identityProvider.Metadata.IDPSLOEndpoints);
+            // do not set the destination for DigiD
+            request.Destination = destination.Url;
+
+            if (destination.Binding == BindingType.Redirect)
+            {
+                // do not set the Reason for DigiD
+                //request.Reason = Saml20Constants.Reasons.User;
+                context.Set(IdpTempSessionKey, identityProvider.Id);
+
+                var identity = context.Request.User.Identity as ClaimsIdentity;
+                var nameId = identity.Claims.Single(c => c.Type == ClaimTypes.NameID).Value;
+                request.SubjectToLogOut.Value = nameId;
+
+                var builder = new HttpRedirectBindingBuilder
+                {
+                    Request = request.GetXml().OuterXml,
+                    SigningKey = config.ServiceProvider.SigningCertificate.PrivateKey
+                };
+
+                var redirectUrl = destination.Url + (destination.Url.Contains("?") ? "&" : "?") + builder.ToQuery();
+                logger.DebugFormat(TraceMessages.LogoutRequestSent, identityProvider.Id, "REDIRECT", redirectUrl);
+
+                return redirectUrl;
+            }
+
+            throw new NotImplementedException();
         }
 
         private string AuthnRequestForIdp(IdentityProvider identityProvider, Saml20AuthnRequest request, IOwinContext context, Saml2Configuration config)

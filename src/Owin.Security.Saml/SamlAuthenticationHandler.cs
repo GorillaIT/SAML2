@@ -7,6 +7,8 @@ using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security.Infrastructure;
 using Microsoft.Owin.Security.Notifications;
 using Microsoft.Owin.Security;
+using Newtonsoft.Json;
+using System.Net;
 
 namespace Owin.Security.Saml
 {
@@ -71,12 +73,22 @@ namespace Owin.Security.Saml
 
             if (!notification.HandledResponse)
             {
-                string redirectUri = notification.ProtocolMessage.BuildRedirectUrl();
+                string redirectUri = notification.ProtocolMessage.BuildSignOutRedirectUrl();
                 if (!Uri.IsWellFormedUriString(redirectUri, UriKind.Absolute))
                 {
                     _logger.WriteWarning("The sign-out redirect URI is malformed: " + redirectUri);
                 }
-                Response.Redirect(redirectUri);
+
+                if (Context.Request.IsAjaxRequest())
+                {
+                    // TODO: check if this is realy the correct way to send the Uri:
+                    Response.StatusCode = (int)HttpStatusCode.NoContent;
+                    Response.Headers.Add("X-Location", new[] { redirectUri });
+                }
+                else
+                {
+                    Response.Redirect(redirectUri);
+                }
             }
         }
 
@@ -190,12 +202,13 @@ namespace Owin.Security.Saml
         protected override async Task<AuthenticationTicket> AuthenticateCoreAsync()
         {
             // Allow login to be constrained to a specific path.
-            if (Options.LoginPath != Request.Path.Value) {
-                return null;
-            }
+            if (Options.LoginPath == Request.Path.Value)
+                return await new SamlLoginHandler(Options).Invoke(Request.Context);
 
-            return await new SamlLoginHandler(Options).Invoke(Request.Context);
+            if (Options.LogoutPath == Request.Path.Value)
+                return null; // do log-off
 
+            return null;
         }
 
         private async Task<SamlMessage> SamlMessageFromRequest()
