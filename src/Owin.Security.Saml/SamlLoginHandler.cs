@@ -160,11 +160,19 @@ namespace Owin
             };
 
             var relayState = requestParams["RelayState"];
-            if (!string.IsNullOrEmpty(relayState)) {
-                var challengeProperties = new AuthenticationProperties(Compression.DeflateDecompress(relayState).FromDelimitedString().ToDictionary(k => k.Key, v => v.Value));
-                if (challengeProperties.RedirectUri != null) authenticationProperties.RedirectUri = challengeProperties.RedirectUri;
-                foreach (var kvp in challengeProperties.Dictionary.Except(authenticationProperties.Dictionary))
-                    authenticationProperties.Dictionary.Add(kvp);
+            if (!string.IsNullOrEmpty(relayState))
+            {
+                try
+                {
+                    var challengeProperties = new AuthenticationProperties(Compression.DeflateDecompress(relayState).FromDelimitedString().ToDictionary(k => k.Key, v => v.Value));
+                    if (challengeProperties.RedirectUri != null) authenticationProperties.RedirectUri = challengeProperties.RedirectUri;
+                    foreach (var kvp in challengeProperties.Dictionary.Except(authenticationProperties.Dictionary))
+                        authenticationProperties.Dictionary.Add(kvp);
+                }
+                catch (Exception e)
+                {
+                    Logger.Error($"Received invalid RelayState from DigiD while authenticating. RelayState={relayState}", e);
+                }
             }
 			return Task.FromResult(new AuthenticationTicket(assertion.ToClaimsIdentity(options.SignInAsAuthenticationType), authenticationProperties));
         }
