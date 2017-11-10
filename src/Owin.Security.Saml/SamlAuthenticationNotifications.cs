@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Security.Notifications;
+using SAML2.Schema.Protocol;
+using Microsoft.Owin;
 
 namespace Owin.Security.Saml
 {
@@ -20,6 +21,7 @@ namespace Owin.Security.Saml
             SecurityTokenReceived = notification => Task.FromResult(0);
             SecurityTokenValidated = notification => Task.FromResult(0);
             RedirectToIdentityProvider = notification => Task.FromResult(0);
+            LogoutRequestReceived = (message, config, context) => Task.FromResult(0);
         }
 
         /// <summary>
@@ -46,5 +48,7 @@ namespace Owin.Security.Saml
         /// Invoked after the security token has passed validation and a ClaimsIdentity has been generated.
         /// </summary>
         public Func<SecurityTokenValidatedNotification<SamlMessage, SamlAuthenticationOptions>, Task> SecurityTokenValidated { get; set; }
+
+        public Func<LogoutRequest, SamlAuthenticationOptions, IOwinContext, Task> LogoutRequestReceived { get; set; }
     }
 }

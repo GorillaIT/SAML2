@@ -1,19 +1,27 @@
 ﻿using Microsoft.Owin;
 using SAML2;
+using SAML2.Bindings;
+using SAML2.Config;
 using SAML2.Logging;
 using SAML2.Protocol;
+using SAML2.Schema.Protocol;
+using SAML2.Utils;
 using System;
+using System.Collections.Specialized;
+using System.IO;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace Owin.Security.Saml
 {
-    public class SamlLogoutHandler
+    public class SamlLogoutHandler : SamlAbstractEndpointHandler
     {
         private static readonly IInternalLogger Logger = LoggerProvider.LoggerFor(typeof(SamlLoginHandler));
 
         private readonly SamlAuthenticationOptions options;
 
         public SamlLogoutHandler(SamlAuthenticationOptions options)
+            : base(options.Configuration)
         {
             if (options == null) throw new ArgumentNullException("options");
             this.options = options;
@@ -23,15 +31,15 @@ namespace Owin.Security.Saml
         {
             Logger.Debug(TraceMessages.LogoutHandlerCalled);
 
+            var requestParams = context.Request.GetRequestParameters().ToNameValueCollection();
+
             // Some IDP's are known to fail to set an actual value in the SOAPAction header
             // so we just check for the existence of the header field.
-            //if (Array.Exists(context.Request.Headers.AllKeys, s => s == SoapConstants.SoapAction))
-            //{
-            //    HandleSoap(context, context.Request.InputStream, config);
-            //    return;
-            //}
-
-            var requestParams = context.Request.GetRequestParameters().ToNameValueCollection();
+            if (context.Request.Headers.ContainsKey(SoapConstants.SoapAction))
+            {
+                await HandleSoap(context, context.Request.Body, requestParams);
+                return await Task.FromResult(true);
+            }
 
             //if (!string.IsNullOrEmpty(requestParams["SAMLart"]))
             //{
@@ -41,7 +49,7 @@ namespace Owin.Security.Saml
 
             if (!string.IsNullOrEmpty(requestParams["SAMLResponse"]))
             {
-                HandleResponse(context);
+                HandleResponse(context, requestParams);
 
                 return await Task.FromResult(true);
             }
@@ -79,10 +87,9 @@ namespace Owin.Security.Saml
         /// Handles the response.
         /// </summary>
         /// <param name="context">The context.</param>
-        private void HandleResponse(IOwinContext context)
+        private void HandleResponse(IOwinContext context, NameValueCollection requestParams)
         {
             var requestType = context.Request.Method;
-            var requestParams = context.Request.GetRequestParameters().ToNameValueCollection();
             var requestUrl = context.Request.Uri;
             new Logout(Logger, options.Configuration).ValidateLogoutRequest(requestType, requestParams, requestUrl);
             // Log the user out locally
@@ -111,5 +118,61 @@ namespace Owin.Security.Saml
             //}
         }
 
+        /// <summary>
+        /// Handles the SOAP message.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <param name="inputStream">The input stream.</param>
+        private async Task HandleSoap(IOwinContext context, Stream inputStream, NameValueCollection requestParams)
+        {
+            var config = options.Configuration;
+
+            var parser = new HttpArtifactBindingParser(inputStream);
+            Logger.DebugFormat(TraceMessages.SOAPMessageParse, parser.SamlMessage.OuterXml);
+
+            var builder = GetBuilder(context);
+            var idp = IdpSelectionUtil.RetrieveIDPConfiguration(parser.Issuer, config);
+
+            if (parser.IsLogoutReqest)
+            {
+                Logger.DebugFormat(TraceMessages.LogoutRequestReceived, parser.SamlMessage.OuterXml);
+
+                // TODO: enable signature check:
+                //if (!parser.CheckSamlMessageSignature(idp.Metadata.Keys))
+                //{
+                //    Logger.ErrorFormat(ErrorMessages.ArtifactResolveSignatureInvalid);
+                //    throw new Saml20Exception(ErrorMessages.ArtifactResolveSignatureInvalid);
+                //}
+
+                var req = parser.LogoutRequest;
+
+                await options.Notifications.LogoutRequestReceived(req, options, context);
+
+                DoLogout(context, true);
+
+                // Build the response object
+                var response = new Saml20LogoutResponse
+                {
+                    Issuer = config.ServiceProvider.Id,
+                    StatusCode = Saml20Constants.StatusCodes.Success,
+                    InResponseTo = req.Id
+                };
+
+                // response.Destination = destination.Url;
+                var doc = response.GetXml();
+                XmlSignatureUtils.SignDocument(doc, response.Id, config.ServiceProvider.SigningCertificate);
+                if (doc.FirstChild is XmlDeclaration)
+                {
+                    doc.RemoveChild(doc.FirstChild);
+                }
+
+                SendResponseMessage(doc.OuterXml, context);
+            }
+            else
+            {
+                Logger.ErrorFormat(ErrorMessages.SOAPMessageUnsupportedSamlMessage);
+                throw new Saml20Exception(ErrorMessages.SOAPMessageUnsupportedSamlMessage);
+            }
+        }
     }
 }

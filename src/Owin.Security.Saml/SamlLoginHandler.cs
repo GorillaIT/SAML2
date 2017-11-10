@@ -5,7 +5,6 @@ using SAML2.Config;
 using SAML2.Logging;
 using SAML2.Bindings;
 using SAML2;
-using System.IO;
 using SAML2.Utils;
 using SAML2.Protocol;
 using System.Collections.Generic;
@@ -18,14 +17,13 @@ using System.Linq;
 
 namespace Owin
 {
-    internal class SamlLoginHandler
+    internal class SamlLoginHandler : SamlAbstractEndpointHandler
     {
         /// <summary>
         /// Logger instance.
         /// </summary>
         private static readonly IInternalLogger Logger = LoggerProvider.LoggerFor(typeof(SamlLoginHandler));
 
-        private Saml2Configuration configuration;
         private readonly Func<string, object> getFromCache;
         private readonly IDictionary<string, object> session;
         private readonly Action<string, object, DateTime> setInCache;
@@ -34,8 +32,7 @@ namespace Owin
         /// Key used to save temporary session id
         /// </summary>
         public const string IdpTempSessionKey = "TempIDPId";
-
-
+        
         /// <summary>
         /// Key used to override <c>ForceAuthn</c> setting
         /// </summary>
@@ -46,23 +43,21 @@ namespace Owin
         /// </summary>
         public const string IdpIsPassive = "IDPIsPassive";
         private readonly SamlAuthenticationOptions options;
-
-
+        
         /// <summary>
         /// Constructor for LoginHandler
         /// </summary>
         /// <param name="configuration">SamlConfiguration</param>
         /// <param name="getFromCache">May be null unless doing artifact binding, this function will be called for artifact resolution</param>
         public SamlLoginHandler(SamlAuthenticationOptions options)
+            : base(options.Configuration)
         {
             if (options == null) throw new ArgumentNullException("options");
             this.options = options;
-            configuration = options.Configuration;
             getFromCache = options.GetFromCache;
             setInCache = options.SetInCache;
             session = options.Session;
         }
-
 
         /// <summary>
         /// Invokes the login procedure (2nd leg of SP-Initiated login). Analagous to Saml20SignonHandler from ASP.Net DLL
@@ -226,26 +221,7 @@ namespace Owin
 
             Utility.HandleSoap(builder, inputStream, configuration, a => DoSignOn(context, a), getFromCache, setInCache, session);
         }
-
-        private HttpArtifactBindingBuilder GetBuilder(IOwinContext context)
-        {
-            return new HttpArtifactBindingBuilder(
-                configuration,
-                context.Response.Redirect,
-                m => SendResponseMessage(m, context));
-        }
-
-        private static void SendResponseMessage(string message, IOwinContext context)
-        {
-            context.Response.ContentType = "text/xml";
-            using (var writer = new StreamWriter(context.Response.Body)) {
-                writer.Write(HttpSoapBindingBuilder.WrapInSoapEnvelope(message));
-                writer.Flush();
-                writer.Close();
-            }
-        }
-
-
+        
         /// <summary>
         /// Handles executing the login.
         /// </summary>
