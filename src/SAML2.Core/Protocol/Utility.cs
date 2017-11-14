@@ -349,7 +349,7 @@ namespace SAML2.Protocol
                     var responseStatus = Utility.GetStatusElement(parser.ArtifactResponse.Any);
                     if (responseStatus.StatusCode.Value != Saml20Constants.StatusCodes.Success) {
                         logger.ErrorFormat(ErrorMessages.ArtifactResponseStatusCodeInvalid, responseStatus.StatusCode.Value);
-                        throw new Saml20Exception(string.Format(ErrorMessages.ArtifactResponseStatusCodeInvalid, responseStatus.StatusCode.Value));
+                        throw new Saml20Exception(string.Format(ErrorMessages.ArtifactResponseStatusCodeInvalid, responseStatus.StatusCode.Value), responseStatus.StatusCode);
                     }
 
                     bool isEncrypted;
