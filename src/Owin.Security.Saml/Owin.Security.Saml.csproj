@@ -82,6 +82,7 @@
     <Compile Include="SamlLogoutHandler.cs" />
     <Compile Include="SamlMessage.cs" />
     <Compile Include="SamlMetadataWriter.cs" />
+    <Compile Include="SamlEndpointException.cs" />
     <Compile Include="SelectSaml20IDP.cs" />
   </ItemGroup>
   <ItemGroup>
