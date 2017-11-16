@@ -1,8 +1,10 @@
 ﻿using Microsoft.Owin;
+using Owin.Security.Saml.Notifications;
 using SAML2;
 using SAML2.Bindings;
 using SAML2.Logging;
 using SAML2.Protocol;
+using SAML2.Schema.Protocol;
 using SAML2.Utils;
 using System;
 using System.Collections.Specialized;
@@ -151,7 +153,12 @@ namespace Owin.Security.Saml
 
                 var req = parser.LogoutRequest;
 
-                await options.Notifications.LogoutRequestReceived(req, options, context);
+                var logoutRequestReceivedNotification = new LogoutRequestReceivedNotification<LogoutRequest, SamlAuthenticationOptions>(context, options)
+                {
+                    ProtocolMessage = req
+                };
+
+                await options.Notifications.LogoutRequestReceived(logoutRequestReceivedNotification);
 
                 DoLogout(context, true);
 

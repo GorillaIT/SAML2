@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Owin.Security.Notifications;
 using SAML2.Schema.Protocol;
 using Microsoft.Owin;
+using Owin.Security.Saml.Notifications;
 
 namespace Owin.Security.Saml
 {
@@ -21,7 +22,7 @@ namespace Owin.Security.Saml
             SecurityTokenReceived = notification => Task.FromResult(0);
             SecurityTokenValidated = notification => Task.FromResult(0);
             RedirectToIdentityProvider = notification => Task.FromResult(0);
-            LogoutRequestReceived = (message, config, context) => Task.FromResult(0);
+            LogoutRequestReceived = notification => Task.FromResult(0);
         }
 
         /// <summary>
@@ -49,6 +50,9 @@ namespace Owin.Security.Saml
         /// </summary>
         public Func<SecurityTokenValidatedNotification<SamlMessage, SamlAuthenticationOptions>, Task> SecurityTokenValidated { get; set; }
 
-        public Func<LogoutRequest, SamlAuthenticationOptions, IOwinContext, Task> LogoutRequestReceived { get; set; }
+        /// <summary>
+        /// Invoked after the external logout request is received and validated.
+        /// </summary>
+        public Func<LogoutRequestReceivedNotification<LogoutRequest, SamlAuthenticationOptions>, Task> LogoutRequestReceived { get; set; }
     }
 }
