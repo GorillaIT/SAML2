@@ -1,21 +1,19 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.Owin;
-using SAML2.Config;
 using SAML2.Logging;
 using SAML2.Bindings;
 using SAML2;
 using SAML2.Utils;
 using SAML2.Protocol;
 using System.Collections.Generic;
-using Owin.Security.Saml;
 using System.Collections.Specialized;
 using System.Runtime.ExceptionServices;
 using Microsoft.Owin.Security.Notifications;
 using Microsoft.Owin.Security;
 using System.Linq;
 
-namespace Owin
+namespace Owin.Security.Saml
 {
     internal class SamlLoginHandler : SamlAbstractEndpointHandler
     {

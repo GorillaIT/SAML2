@@ -1,10 +1,8 @@
 ﻿using Microsoft.Owin;
 using SAML2;
 using SAML2.Bindings;
-using SAML2.Config;
 using SAML2.Logging;
 using SAML2.Protocol;
-using SAML2.Schema.Protocol;
 using SAML2.Utils;
 using System;
 using System.Collections.Specialized;
@@ -16,7 +14,7 @@ namespace Owin.Security.Saml
 {
     public class SamlLogoutHandler : SamlAbstractEndpointHandler
     {
-        private static readonly IInternalLogger Logger = LoggerProvider.LoggerFor(typeof(SamlLoginHandler));
+        private static readonly IInternalLogger Logger = LoggerProvider.LoggerFor(typeof(SamlLogoutHandler));
 
         private readonly SamlAuthenticationOptions options;
 
