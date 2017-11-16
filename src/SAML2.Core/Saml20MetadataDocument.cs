@@ -618,7 +618,7 @@ namespace SAML2
                                                  Location = new Uri(baseUrl, endpoint.LocalPath).ToString()
                                              };
                     logoutEndpoint.ResponseLocation = logoutEndpoint.Location;
-                    logoutEndpoint.Binding = GetBinding(endpoint.Binding, Saml20Constants.ProtocolBindings.HttpPost);
+                    logoutEndpoint.Binding = GetBinding(endpoint.Binding, Saml20Constants.ProtocolBindings.HttpSoap);
                     logoutServiceEndpoints.Add(logoutEndpoint);
 
                     // TODO: Look at this...
