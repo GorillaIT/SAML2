@@ -47,7 +47,14 @@ namespace Owin.Security.Saml
 
             if (!string.IsNullOrEmpty(requestParams["SAMLResponse"]))
             {
-                HandleResponse(context, requestParams);
+                try
+                {
+                    HandleResponse(context, requestParams);
+                }
+                catch (Exception ex)
+                {
+                    throw new SamlEndpointException("Error during logout request, see inner exception", ex);
+                }
 
                 return await Task.FromResult(true);
             }

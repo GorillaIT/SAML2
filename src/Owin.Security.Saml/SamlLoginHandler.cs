@@ -109,12 +109,12 @@ namespace Owin.Security.Saml
                 }
                 // Flow possible changes
                 ticket = securityTokenValidatedNotification.AuthenticationTicket;
-
                 context.Authentication.AuthenticationResponseGrant = new AuthenticationResponseGrant(ticket.Identity, ticket.Properties);                
                 return ticket;
             }
             catch (Exception ex) {
-                authFailedEx = ExceptionDispatchInfo.Capture(ex);
+                var endpointException = new SamlEndpointException("Error during login request, see inner exception", ex);
+                authFailedEx = ExceptionDispatchInfo.Capture(endpointException);
             }
             if (authFailedEx != null) {
                 Logger.Error("Exception occurred while processing message: " + authFailedEx.SourceException);
@@ -131,7 +131,6 @@ namespace Owin.Security.Saml
                 if (authenticationFailedNotification.Skipped) {
                     return null; //null
                 }
-
                 authFailedEx.Throw();
             }
             return null;
