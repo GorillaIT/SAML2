@@ -35,7 +35,9 @@ namespace Owin.Security.Saml
 
             // Some IDP's are known to fail to set an actual value in the SOAPAction header
             // so we just check for the existence of the header field.
-            if (context.Request.Headers.ContainsKey(SoapConstants.SoapAction))
+            // and some servers don't send SOAP headers at all so fix those:
+            if (context.Request.Headers.ContainsKey(SoapConstants.SoapAction)
+                || "text/xml".Equals(context.Request.ContentType, StringComparison.OrdinalIgnoreCase))
             {
                 await HandleSoap(context, context.Request.Body, requestParams);
                 return await Task.FromResult(true);
@@ -144,12 +146,11 @@ namespace Owin.Security.Saml
             {
                 Logger.DebugFormat(TraceMessages.LogoutRequestReceived, parser.SamlMessage.OuterXml);
 
-                // TODO: enable signature check:
-                //if (!parser.CheckSamlMessageSignature(idp.Metadata.Keys))
-                //{
-                //    Logger.ErrorFormat(ErrorMessages.ArtifactResolveSignatureInvalid);
-                //    throw new Saml20Exception(ErrorMessages.ArtifactResolveSignatureInvalid);
-                //}
+                if (!parser.CheckSamlMessageSignature(idp.Metadata.Keys))
+                {
+                    Logger.ErrorFormat(ErrorMessages.ArtifactResolveSignatureInvalid);
+                    throw new Saml20Exception(ErrorMessages.ArtifactResolveSignatureInvalid);
+                }
 
                 var req = parser.LogoutRequest;
 

@@ -99,6 +99,11 @@ namespace SAML2.Bindings
                     return ArtifactResponse.Issuer.Value;
                 }
 
+                if(IsLogoutReqest)
+                {
+                    return LogoutRequest.Issuer.Value;
+                }
+
                 return string.Empty;
             }
         }
