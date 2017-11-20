@@ -278,7 +278,9 @@ namespace SAML2.Utils
 
             // Include the public key of the certificate in the assertion.
             signedXml.KeyInfo = new KeyInfo();
-            signedXml.KeyInfo.AddClause(new KeyInfoX509Data(cert, X509IncludeOption.WholeChain));
+            // using X509IncludeOption.WholeChain can cause performance issues
+            //  see: https://digitaliser.dk/forum/2365147
+            signedXml.KeyInfo.AddClause(new KeyInfoX509Data(cert, X509IncludeOption.EndCertOnly));
 
             signedXml.ComputeSignature();
 
