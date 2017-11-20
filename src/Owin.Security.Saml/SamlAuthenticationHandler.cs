@@ -82,11 +82,7 @@ namespace Owin.Security.Saml
 
                 if (Context.Request.IsAjaxRequest())
                 {
-                    var json = JsonConvert.SerializeObject(new { uri = redirectUri });
-                    Response.StatusCode = (int)HttpStatusCode.OK;
-                    Response.ContentType = "application/json";
-                    Response.ContentLength = Encoding.UTF8.GetByteCount(json);
-                    Response.Write(json);
+                    Response.Headers.Add("X-Location", new[] { redirectUri });
                 }
                 else
                 {
