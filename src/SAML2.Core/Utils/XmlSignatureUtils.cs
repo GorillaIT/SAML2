@@ -1,3 +1,4 @@
+using SAML2.Config;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -5,7 +6,6 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Xml;
-using SAML2.Config;
 
 namespace SAML2.Utils
 {
@@ -89,7 +89,7 @@ namespace SAML2.Utils
         public static bool CheckSignature(XmlDocument doc, KeyInfo keyinfo)
         {
             CheckDocument(doc);
-            var signedXml = RetrieveSignature(doc);            
+            var signedXml = RetrieveSignature(doc);
 
             AsymmetricAlgorithm alg = null;
             X509Certificate2 cert = null;
@@ -101,19 +101,19 @@ namespace SAML2.Utils
                     alg = key.Key;
                     break;
                 }
-                
+
                 if (clause is KeyInfoX509Data)
                 {
                     var x509Data = (KeyInfoX509Data)clause;
                     var count = x509Data.Certificates.Count;
-                    cert = (X509Certificate2)x509Data.Certificates[count - 1];                    
-                } 
+                    cert = (X509Certificate2)x509Data.Certificates[count - 1];
+                }
                 else if (clause is DSAKeyValue)
                 {
                     var key = (DSAKeyValue)clause;
                     alg = key.Key;
                     break;
-                }                
+                }
             }
 
             if (alg == null && cert == null)
@@ -134,19 +134,19 @@ namespace SAML2.Utils
             if (keyInfoClause is RSAKeyValue)
             {
                 var key = (RSAKeyValue)keyInfoClause;
-                return key.Key;                
+                return key.Key;
             }
-            
+
             if (keyInfoClause is KeyInfoX509Data)
             {
                 var cert = GetCertificateFromKeyInfo((KeyInfoX509Data)keyInfoClause);
                 return cert != null ? cert.PublicKey.Key : null;
             }
-            
+
             if (keyInfoClause is DSAKeyValue)
             {
                 var key = (DSAKeyValue)keyInfoClause;
-                return key.Key;                
+                return key.Key;
             }
 
             return null;
@@ -213,7 +213,7 @@ namespace SAML2.Utils
             {
                 return null;
             }
-            
+
             var cert = (X509Certificate2)keyInfo.Certificates[count - 1];
 
             return cert;
@@ -450,7 +450,7 @@ namespace SAML2.Utils
                 {
                     throw new InvalidOperationException("Signature reference URI is not a document fragment reference. Uri = '" + uri + "'");
                 }
-                
+
                 if (uri.Length < 2 || !id.Equals(uri.Substring(1)))
                 {
                     throw new InvalidOperationException("Rererence URI = '" + uri.Substring(1) + "' does not match expected id = '" + id + "'");

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Configuration;
 
 namespace SAML2.Config
 {
@@ -52,6 +51,11 @@ namespace SAML2.Config
         /// </summary>
         /// <value>The service provider.</value>
         public ServiceProvider ServiceProvider { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether to use the AssertionConsumerServiceURL or the AssertionConsumerServiceIndex.
+        /// </summary>
+        public bool UseServiceIndex { get; set; }
 
         public Saml2Configuration()
         {

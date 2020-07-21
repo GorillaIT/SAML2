@@ -1,10 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Xml;
 using SAML2.Config;
 using SAML2.Schema.Core;
 using SAML2.Schema.Protocol;
 using SAML2.Utils;
+using System;
+using System.Collections.Generic;
+using System.Xml;
 
 namespace SAML2
 {
@@ -19,12 +19,12 @@ namespace SAML2
         public Saml20AuthnRequest()
         {
             Request = new AuthnRequest
-                          {
-                              Version = Saml20Constants.Version,
-                              Id = "id" + Guid.NewGuid().ToString("N"),
-                              Issuer = new NameId(),
-                              IssueInstant = DateTime.Now
-                          };
+            {
+                Version = Saml20Constants.Version,
+                Id = "id" + Guid.NewGuid().ToString("N"),
+                Issuer = new NameId(),
+                IssueInstant = DateTime.Now
+            };
         }
 
         #region Request properties
@@ -37,6 +37,20 @@ namespace SAML2
         {
             get { return Request.AssertionConsumerServiceUrl; }
             set { Request.AssertionConsumerServiceUrl = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the assertion consumer service index.
+        /// </summary>
+        /// <value>The assertion consumer service index.</value>
+        public ushort AssertionConsumerServiceIndex
+        {
+            get { return Request.AssertionConsumerServiceIndex; }
+            set
+            {
+                Request.AssertionConsumerServiceIndex = value;
+                Request.AssertionConsumerServiceIndexSpecified = true;
+            }
         }
 
         /// <summary>
@@ -140,6 +154,12 @@ namespace SAML2
             set { Request.RequestedAuthnContext = value; }
         }
 
+        public string ProviderName
+        {
+            get { return Request.ProviderName; }
+            set { Request.ProviderName = value; }
+        }
+
         #endregion
 
         public static Saml20AuthnRequest GetDefault()
@@ -155,8 +175,15 @@ namespace SAML2
             var result = new Saml20AuthnRequest { Issuer = config.ServiceProvider.Id };
             if (config.ServiceProvider.Endpoints.DefaultSignOnEndpoint.Binding != BindingType.NotSet)
             {
-                var baseUrl = new Uri(config.ServiceProvider.Server);
-                result.AssertionConsumerServiceUrl = new Uri(baseUrl, config.ServiceProvider.Endpoints.DefaultSignOnEndpoint.LocalPath).ToString();
+                if (config.UseServiceIndex)
+                {
+                    result.AssertionConsumerServiceIndex = (ushort)config.ServiceProvider.Endpoints.DefaultSignOnEndpoint.Index;
+                }
+                else
+                {
+                    var baseUrl = new Uri(config.ServiceProvider.Server);
+                    result.AssertionConsumerServiceUrl = new Uri(baseUrl, config.ServiceProvider.Endpoints.DefaultSignOnEndpoint.LocalPath).ToString();
+                }
             }
 
             // Binding
@@ -180,10 +207,10 @@ namespace SAML2
             if (config.ServiceProvider.NameIdFormats.Count > 0)
             {
                 result.NameIdPolicy = new NameIdPolicy
-                                          {
-                                              AllowCreate = false,
-                                              Format = config.ServiceProvider.NameIdFormats[0].Format
-                                          };
+                {
+                    AllowCreate = false,
+                    Format = config.ServiceProvider.NameIdFormats[0].Format
+                };
 
                 if (result.NameIdPolicy.Format != Saml20Constants.NameIdentifierFormats.Entity)
                 {

@@ -1,7 +1,6 @@
-# DigiD - SAML2 Single sign-on
+# DigiD / Routeringsvoorziening - SAML2 Single sign-on
 Fork of SAML2 owin library originally compatible with Shibboleth. 
-This fork is developed to be compatible with the Dutch DigiD. 
-
+This fork is developed to be compatible with the Dutch DigiD and  Routeringsvoorziening. 
 
 ## Configuring Owin
 

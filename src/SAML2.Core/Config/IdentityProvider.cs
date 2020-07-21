@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Configuration;
 
 namespace SAML2.Config
 {
@@ -21,8 +20,8 @@ namespace SAML2.Config
         /// <remarks>
         /// Use default in case common domain cookie is not set, and more than one endpoint is available.
         /// </remarks>
-        public bool Default{ get; set; }
-        
+        public bool Default { get; set; }
+
         /// <summary>
         /// Gets or sets a value indicating whether to force authentication on each <c>AuthnRequest</c>.
         /// </summary>
@@ -49,6 +48,12 @@ namespace SAML2.Config
         /// </summary>
         /// <value><c>true</c> if assertion signature check should be omitted; otherwise, <c>false</c>.</value>
         public bool OmitAssertionSignatureCheck { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to omit artifact response signature check.
+        /// </summary>
+        /// <value><c>true</c> if artifact response signature check should be omitted; otherwise, <c>false</c>.</value>
+        public bool OmiArtifactResponseSignatureCheck { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to allow IdP Initiated SSO. This profile allows SAML responses without an SP-initiated request.
@@ -97,7 +102,7 @@ namespace SAML2.Config
         /// Gets or sets the common domain cookie configuration settings.
         /// </summary>
         /// <value>The common domain cookie.</value>
-        public IDictionary<string,string> CommonDomainCookie { get; set; }
+        public IDictionary<string, string> CommonDomainCookie { get; set; }
 
         /// <summary>
         /// Gets or sets the endpoints.
