@@ -53,7 +53,7 @@ namespace SAML2.Config
         /// Gets or sets a value indicating whether to omit artifact response signature check.
         /// </summary>
         /// <value><c>true</c> if artifact response signature check should be omitted; otherwise, <c>false</c>.</value>
-        public bool OmiArtifactResponseSignatureCheck { get; set; }
+        public bool OmitArtifactResponseSignatureCheck { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to allow IdP Initiated SSO. This profile allows SAML responses without an SP-initiated request.

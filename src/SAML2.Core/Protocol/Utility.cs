@@ -363,7 +363,7 @@ namespace SAML2.Protocol
                 logger.Debug(TraceMessages.ArtifactResolveReceived);
 
                 var idp = IdpSelectionUtil.RetrieveIDPConfiguration(parser.Issuer, config);
-                if (!idp.OmiArtifactResponseSignatureCheck && !parser.CheckSamlMessageSignature(idp.Metadata.Keys))
+                if (!idp.OmitArtifactResponseSignatureCheck && !parser.CheckSamlMessageSignature(idp.Metadata.Keys))
                 {
                     logger.Error(ErrorMessages.ArtifactResponseSignatureInvalid);
                     throw new Saml20Exception(ErrorMessages.ArtifactResponseSignatureInvalid);
