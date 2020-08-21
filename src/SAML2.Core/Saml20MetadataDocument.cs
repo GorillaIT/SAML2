@@ -474,7 +474,6 @@ namespace SAML2
             {
                 SignDocument(doc, certificate);
             }
-
             return doc.OuterXml;
         }
 
@@ -549,7 +548,21 @@ namespace SAML2
             signedXml.ComputeSignature();
 
             // Append the computed signature. The signature must be placed as the sibling of the Issuer element.
-            doc.DocumentElement.InsertBefore(doc.ImportNode(signedXml.GetXml(), true), doc.DocumentElement.FirstChild);
+            var xmlSignature = signedXml.GetXml();
+            AssignNameSpacePrefixToElementTree(xmlSignature, "dsig");
+            doc.DocumentElement.InsertBefore(doc.ImportNode(xmlSignature, true), doc.DocumentElement.FirstChild);
+        }
+
+        // https://code-examples.net/en/q/1d29ce2
+        private static void AssignNameSpacePrefixToElementTree(XmlElement element, string prefix)
+        {
+            element.Prefix = prefix;
+
+            foreach (var child in element.ChildNodes)
+            {
+                if (child is XmlElement)
+                    AssignNameSpacePrefixToElementTree(child as XmlElement, prefix);
+            }
         }
 
         /// <summary>
