@@ -1,8 +1,8 @@
+using SAML2.Schema.Core;
+using SAML2.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SAML2.Schema.Core;
-using SAML2.Utils;
 
 namespace SAML2.Validation
 {
@@ -29,7 +29,7 @@ namespace SAML2.Validation
         /// <summary>
         /// StatementValidator backing field.
         /// </summary>
-        private readonly ISaml20StatementValidator _statementValidator = new Saml20StatementValidator();
+        private readonly ISaml20StatementValidator _statementValidator;
 
         /// <summary>
         /// SubjectValidator backing field.
@@ -41,10 +41,11 @@ namespace SAML2.Validation
         /// </summary>
         /// <param name="allowedAudienceUris">The allowed audience uris.</param>
         /// <param name="quirksMode">if set to <c>true</c> [quirks mode].</param>
-        public Saml20AssertionValidator(List<Uri> allowedAudienceUris, bool quirksMode)
+        public Saml20AssertionValidator(List<Uri> allowedAudienceUris, bool quirksMode, bool enforceValidUrisForAuthenticationAuthorities)
         {
             _allowedAudienceUris = allowedAudienceUris;
             _quirksMode = quirksMode;
+            _statementValidator = new Saml20StatementValidator(enforceValidUrisForAuthenticationAuthorities);
         }
 
         #region ISaml20AssertionValidator interface
@@ -239,7 +240,7 @@ namespace SAML2.Validation
 
             var oneTimeUseSeen = false;
             var proxyRestrictionsSeen = false;
-            
+
             ValidateConditionsInterval(assertion.Conditions);
 
             foreach (var cat in assertion.Conditions.Items)
@@ -338,7 +339,7 @@ namespace SAML2.Validation
                 }
             }
         }
-        
+
         /// <summary>
         /// Validates the details of the Statements present in the assertion ([SAML2.0 standard] section 2.7)
         /// NOTE: the rules relating to the enforcement of a Subject element are handled during Subject validation

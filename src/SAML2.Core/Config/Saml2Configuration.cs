@@ -57,6 +57,16 @@ namespace SAML2.Config
         /// </summary>
         public bool UseServiceIndex { get; set; }
 
+        /// <summary>
+        /// Gets or sets whether the AuthnRequest should contain conditions. Set to false if they are not supported by the provider
+        /// </summary>
+        public bool UseConditionsInAuthnRequest { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets whether the AuthenticatingAuthority in the artifact response must correspond to a well-formed URI.
+        /// </summary>
+        public bool EnforceValidUriForAuthenticatingAuthorities { get; set; } = true;
+
         public Saml2Configuration()
         {
             IdentityProviders = new IdentityProviders();

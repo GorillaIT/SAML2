@@ -1,3 +1,8 @@
+using SAML2.Config;
+using SAML2.Schema.Core;
+using SAML2.Schema.Protocol;
+using SAML2.Utils;
+using SAML2.Validation;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,18 +11,13 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Xml;
-using SAML2.Config;
-using SAML2.Schema.Core;
-using SAML2.Schema.Protocol;
-using SAML2.Utils;
-using SAML2.Validation;
 
 namespace SAML2
 {
     /// <summary>
     /// Encapsulates the functionality required of a DK-SAML 2.0 Assertion. 
     /// </summary>
-    public class Saml20Assertion 
+    public class Saml20Assertion
     {
         /// <summary>
         /// Configuration element
@@ -214,7 +214,7 @@ namespace SAML2
         /// </summary>
         /// <value>The encrypted id.</value>
         public string EncryptedId { get; set; }
-        
+
         /// <summary>
         /// Gets the ID attribute of the &lt;Assertion&gt; element.
         /// </summary>
@@ -222,7 +222,7 @@ namespace SAML2
         {
             get { return Assertion.Id; }
         }
-        
+
         /// <summary>
         /// Gets a value indicating whether the expiration time has been exceeded.
         /// </summary>
@@ -329,7 +329,7 @@ namespace SAML2
                 {
                     if (string.IsNullOrEmpty(_profile))
                     {
-                        _assertionValidator = new Saml20AssertionValidator(null, _quirksMode);
+                        _assertionValidator = new Saml20AssertionValidator(null, _quirksMode, config.EnforceValidUriForAuthenticatingAuthorities);
                     }
                     else
                     {
@@ -340,7 +340,7 @@ namespace SAML2
                 {
                     if (string.IsNullOrEmpty(_profile))
                     {
-                        _assertionValidator = new Saml20AssertionValidator(config.AllowedAudienceUris, _quirksMode);
+                        _assertionValidator = new Saml20AssertionValidator(config.AllowedAudienceUris, _quirksMode, config.EnforceValidUriForAuthenticatingAuthorities);
                     }
                     else
                     {
@@ -385,7 +385,7 @@ namespace SAML2
                 throw new Saml20Exception("Assertion is no longer valid.");
             }
         }
-       
+
         /// <summary>
         /// Returns the KeyInfo element of the signature of the token.
         /// </summary>
@@ -419,7 +419,7 @@ namespace SAML2
         /// <param name="cert">The certificate to sign the assertion with.</param>
         public void Sign(X509Certificate2 cert, Saml2Configuration config)
         {
-            CheckCertificateCanSign(cert);            
+            CheckCertificateCanSign(cert);
 
             // Clear the strongly typed version of the assertion in preparation for a new source.
             _assertion = null;
@@ -465,11 +465,11 @@ namespace SAML2
 
             // Retrieve the value of the "ID" attribute on the root assertion element.
             var list = assertionDocument.GetElementsByTagName(Assertion.ElementName, Saml20Constants.Assertion);
-            var el = (XmlElement)list[0];            
+            var el = (XmlElement)list[0];
             var reference = new Reference("#" + el.GetAttribute("ID"));
 
-            reference.AddTransform(new XmlDsigEnvelopedSignatureTransform());            
-            reference.AddTransform(new XmlDsigExcC14NTransform());            
+            reference.AddTransform(new XmlDsigEnvelopedSignatureTransform());
+            reference.AddTransform(new XmlDsigExcC14NTransform());
 
             signedXml.AddReference(reference);
 
@@ -479,7 +479,7 @@ namespace SAML2
             signedXml.ComputeSignature();
 
             // Append the computed signature. The signature must be placed as the sibling of the Issuer element.
-            var nodes = assertionDocument.DocumentElement.GetElementsByTagName("Issuer", Saml20Constants.Assertion);            
+            var nodes = assertionDocument.DocumentElement.GetElementsByTagName("Issuer", Saml20Constants.Assertion);
             if (nodes.Count != 1)
             {
                 throw new Saml20Exception("Assertion MUST contain one <Issuer> element.");
@@ -526,7 +526,7 @@ namespace SAML2
         /// stores it in <code>_assertionAttributes</code>.
         /// </summary>
         private void ExtractAttributes()
-        {            
+        {
             _assertionAttributes = new List<SamlAttribute>(0);
             _encryptedAssertionAttributes = new List<EncryptedElement>(0);
 
@@ -539,14 +539,14 @@ namespace SAML2
             // NOTE It would be nice to implement a better-performing solution where only the AttributeStatement is converted.
             // NOTE Namespace issues in the xml-schema "type"-attribute prevents this, though.
             var assertion = Serialization.Deserialize<Assertion>(new XmlNodeReader(XmlAssertion));
-                        
+
             var attributeStatements = assertion.GetAttributeStatements();
             if (attributeStatements.Count == 0 || attributeStatements[0].Items == null)
             {
                 return;
             }
 
-            var attributeStatement = attributeStatements[0];            
+            var attributeStatement = attributeStatements[0];
             foreach (var item in attributeStatement.Items)
             {
                 if (item is SamlAttribute)
@@ -570,7 +570,7 @@ namespace SAML2
             {
                 return;
             }
-            
+
             // Generate the new AttributeStatement
             var attributeStatement = new AttributeStatement();
             var statements = new List<object>(_encryptedAssertionAttributes.Count + _assertionAttributes.Count);
@@ -597,7 +597,7 @@ namespace SAML2
                 var attr = XmlAssertion.OwnerDocument.ImportNode(attributeStatementDoc.DocumentElement, true);
 
                 // Insert the new statement.
-                XmlAssertion.AppendChild(attr);                
+                XmlAssertion.AppendChild(attr);
             }
 
             _encryptedAssertionAttributes = null;

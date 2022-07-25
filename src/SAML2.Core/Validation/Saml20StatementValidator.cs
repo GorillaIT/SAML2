@@ -1,7 +1,7 @@
-using System;
 using SAML2.Schema.Core;
 using SAML2.Schema.Protocol;
 using SAML2.Utils;
+using System;
 
 namespace SAML2.Validation
 {
@@ -10,6 +10,12 @@ namespace SAML2.Validation
     /// </summary>
     public class Saml20StatementValidator : ISaml20StatementValidator
     {
+        private bool _enforceValidUrisForAuthenticationAuthorities;
+
+        public Saml20StatementValidator(bool enforceValidUrisForAuthenticationAuthorities)
+        {
+            _enforceValidUrisForAuthenticationAuthorities = enforceValidUrisForAuthenticationAuthorities;
+        }
         /// <summary>
         /// The attribute validator.
         /// </summary>
@@ -80,7 +86,7 @@ namespace SAML2.Validation
                 }
             }
         }
-        
+
         /// <summary>
         /// Validate <c>AuthnStatement</c>.
         /// </summary>
@@ -178,11 +184,12 @@ namespace SAML2.Validation
                         // There is some concern about this being a valid check.
                         // See: https://lists.oasis-open.org/archives/security-services/200703/msg00004.html
                         // http://saml2.codeplex.com/SourceControl/network/forks/etlerch/saml2/contribution/5740
-                        if (!Uri.IsWellFormedUriString((string)authnContext.Items[i], UriKind.Absolute)) {
+                        if (!Uri.IsWellFormedUriString((string)authnContext.Items[i], UriKind.Absolute))
+                        {
                             throw new Saml20FormatException("AuthnContextDeclRef has a value which is not a wellformed absolute uri");
                         }
 
-                    break;
+                        break;
                     case Schema.Core.AuthnContextType.AuthnContextDecl:
                         throw new Saml20FormatException("AuthnContextDecl elements are not allowed in this implementation");
                     default:
@@ -196,12 +203,15 @@ namespace SAML2.Validation
                 return;
             }
 
-            // Values MUST have xsi schema type anyUri:
-            foreach (var authnAuthority in authnContext.AuthenticatingAuthority)
+            if (_enforceValidUrisForAuthenticationAuthorities)
             {
-                if (!Uri.IsWellFormedUriString(authnAuthority, UriKind.Absolute))
+                // Values MUST have xsi schema type anyUri:
+                foreach (var authnAuthority in authnContext.AuthenticatingAuthority)
                 {
-                    throw new Saml20FormatException("AuthenticatingAuthority array contains a value which is not a wellformed absolute uri");
+                    if (!Uri.IsWellFormedUriString(authnAuthority, UriKind.Absolute))
+                    {
+                        throw new Saml20FormatException("AuthenticatingAuthority array contains a value which is not a wellformed absolute uri");
+                    }
                 }
             }
         }

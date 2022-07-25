@@ -266,12 +266,15 @@ namespace SAML2
                 }
             }
 
-            // Restrictions
-            var audienceRestrictions = new List<ConditionAbstract>(1);
-            var audienceRestriction = new AudienceRestriction { Audience = new List<string>(1) { config.ServiceProvider.Id } };
-            audienceRestrictions.Add(audienceRestriction);
+            if (config.UseConditionsInAuthnRequest)
+            {
+                // Restrictions
+                var audienceRestrictions = new List<ConditionAbstract>(1);
+                var audienceRestriction = new AudienceRestriction { Audience = new List<string>(1) { config.ServiceProvider.Id } };
+                audienceRestrictions.Add(audienceRestriction);
 
-            result.SetConditions(audienceRestrictions);
+                result.SetConditions(audienceRestrictions);
+            }
 
             return result;
         }
