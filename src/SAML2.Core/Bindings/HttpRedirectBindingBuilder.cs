@@ -181,7 +181,7 @@ namespace SAML2.Bindings
             if (_signingKey is RSACryptoServiceProvider)
             {
                 var rsa = (RSACryptoServiceProvider)_signingKey;
-                return rsa.SignData(data, new SHA1CryptoServiceProvider());
+                return rsa.SignData(data, new SHA384CryptoServiceProvider());
             } 
             else
             {
