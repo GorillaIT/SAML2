@@ -157,7 +157,7 @@ namespace SAML2.Bindings
 
             if (_signingKey is RSA)
             {
-                result.Append(UpperCaseUrlEncode(Uri.EscapeDataString(SignedXml.XmlDsigRSASHA1Url)));
+                result.Append(UpperCaseUrlEncode(Uri.EscapeDataString(SignedXml.XmlDsigRSASHA512Url)));
             }
             else
             {
@@ -181,7 +181,7 @@ namespace SAML2.Bindings
             if (_signingKey is RSACryptoServiceProvider)
             {
                 var rsa = (RSACryptoServiceProvider)_signingKey;
-                return rsa.SignData(data, new SHA384CryptoServiceProvider());
+                return rsa.SignData(data, CryptoConfig.MapNameToOID("512"));
             } 
             else
             {
