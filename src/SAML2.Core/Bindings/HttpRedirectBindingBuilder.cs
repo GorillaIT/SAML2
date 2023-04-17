@@ -181,7 +181,7 @@ namespace SAML2.Bindings
             if (_signingKey is RSACryptoServiceProvider)
             {
                 var rsa = (RSACryptoServiceProvider)_signingKey;
-                return rsa.SignData(data, CryptoConfig.MapNameToOID("512"));
+                return rsa.SignData(data, CryptoConfig.MapNameToOID("SHA512"));
             } 
             else
             {
