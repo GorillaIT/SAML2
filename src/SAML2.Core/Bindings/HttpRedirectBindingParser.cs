@@ -124,11 +124,11 @@ namespace SAML2.Bindings
                 throw new InvalidOperationException("Query is not signed, so there is no signature to verify.");
             }
 
-            var hash = new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(_signedquery));
+            var hash = new SHA512Managed().ComputeHash(Encoding.UTF8.GetBytes(_signedquery));
             if (key is RSACryptoServiceProvider)
             {
                 var rsa = (RSACryptoServiceProvider)key;
-                return rsa.VerifyHash(hash, "SHA256", DecodeSignature());
+                return rsa.VerifyHash(hash, "SHA512", DecodeSignature());
             }
             else
             {
